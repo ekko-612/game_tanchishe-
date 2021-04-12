@@ -1,0 +1,213 @@
+//为了打趣一个朋友，命名为“皮皮甘爱吃饼”
+
+#include<stdlib.h>
+#include<windows.h>
+#include<time.h>
+#include<iostream>
+#define w 1
+#define s 2
+#define a 3
+#define d 4
+int score=0;
+typedef struct SNAKE
+{
+	int x;
+	int y;
+	struct SNAKE* next;
+}snake;
+snake* head,*food,*nexthead;
+
+int status=4;
+int sleeptime=200;
+
+void Pos(int x,int y)
+{
+	COORD pos;
+	HANDLE hOutput;
+    pos.X=x;
+	pos.Y=y;
+	hOutput=GetStdHandle(STD_OUTPUT_HANDLE);
+	SetConsoleCursorPosition(hOutput,pos);
+}
+
+void Welcometothegame()
+{   
+	Pos(10,4);
+	printf("欢迎来到皮皮甘爱吃饼");
+	Pos(10,5);
+	printf("皮皮甘饿了，他需要吃十个饼");
+	Pos(10,6);
+	printf("你能帮帮他吗");
+	Pos(10,7);
+	printf("按任意键开始游戏\n");
+	Pos(10,8);
+	printf("wsad控制移动\n\n\n");
+	system("pause");
+	system("cls");
+}
+
+void Createmap()
+{
+	int i;
+	for(i=0;i<50;)
+	{
+		Pos(i,2);
+		printf("▇");
+		Pos(i,25);
+		printf("▇");
+		i+=2;
+	}
+	for(i=3;i<25;)
+	{
+		Pos(0,i);
+		printf("▇");
+		Pos(48,i);
+		printf("▇");
+		i+=1;
+	}
+	Pos(0,0);
+	printf("%d级皮皮甘        ",score);
+}
+
+void Initsnake()
+{
+	snake* tail;
+	tail=(snake*)malloc(sizeof(snake));
+	if(tail==NULL)
+	{
+		return;
+	}
+	tail->x=22;
+	tail->y=13;
+	tail->next=NULL;
+	int i;
+	for(i=1;i<=4;i++)
+	{   snake* head_1;
+		head_1=(snake*)malloc(sizeof(snake));
+        head_1->x=22+2*i;
+		head_1->y=13;
+		head_1->next=tail;
+		tail=head_1;
+		head_1=NULL;
+		free(head_1);
+	}
+	head=tail;
+	while(tail!=NULL)
+	{
+		Pos(tail->x,tail->y);
+		printf("▇");
+		tail=tail->next;
+	}
+	
+}
+void Createfood()
+{
+	snake* food_1;
+	food_1=(snake*)malloc(sizeof(snake));
+	srand((unsigned)time(NULL));
+	do
+	{
+		food_1->x=rand()%45+2;
+	}while(food_1->x%2!=0);
+	food_1->y=rand()%22+3;
+	Pos(food_1->x,food_1->y);
+	printf("▇");
+	food=food_1;
+	food_1=NULL;
+	free(food_1);
+}
+int Biteself(snake* a)
+{
+    snake* q;
+	q=head->next;
+	while(q!=NULL)
+	{
+		if(a->x==q->x&&a->y==q->y)return 1;
+		q=q->next;
+	}
+	free(q);
+	return 0;
+}
+int Crosswall(snake* a)
+{
+	if(a->x==0||a->x==48||a->y==2||a->y==25)return 1;
+	return 0;
+}
+void Move(snake)
+{
+	snake* q;
+	q=(snake*)malloc(sizeof(snake));
+	nexthead=(snake*)malloc(sizeof(snake));
+	status=d;
+	while(1)
+	{
+    switch(status)
+	{
+	case w:
+		nexthead->x=head->x;
+		nexthead->y=head->y-1;
+		
+		
+	case s:
+		nexthead->x=head->x;
+		nexthead->y=head->y+1;
+		
+		   
+    case a:
+		nexthead->x=head->x-2;
+		nexthead->y=head->y;
+		
+		   
+	case d:
+		nexthead->x=head->x+2;
+		nexthead->y=head->y;
+		
+	}
+	if(Crosswall(&nexthead)||Biteself(&nexthead))
+	{
+	return;
+	}
+	if(nexthead->x==food->x&&nexthead->y==food->y)
+	{
+		food->next=head;
+	    head=food;
+		Createfood();
+		score++;
+		sleeptime-=20;
+	
+	}
+	else
+	{
+	    nexthead->next=head;
+		q=nexthead;
+		Pos(q->x,q->y);
+		printf("▇");
+		while(q->next->next!=NULL)
+		{
+			q=q->next;
+		}
+		Pos(q->next->x,q->next->y);
+		printf(" ");
+		free(q->next);
+        head=nexthead;
+	}
+	if(GetAsyncKeyState(VK_UP)&&status!=s)status=w;
+	if(GetAsyncKeyState(VK_DOWN)&&status!=w)status=s;
+	if(GetAsyncKeyState(VK_LEFT)&&status!=d)status=a;
+	if(GetAsyncKeyState(VK_RIGHT)&&status!=a)status=d;
+	Sleep(sleeptime);
+	}
+    
+  
+
+
+
+}
+void main()
+{
+	Welcometothegame();
+	Initsnake();
+	Createmap();
+	Createfood();
+	Move();
+}
